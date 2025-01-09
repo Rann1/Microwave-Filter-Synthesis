@@ -22,7 +22,9 @@ for k=1:1000
 end
 
 %画出带通滤波器的图
-figure('name','wawa');
+figure('name','验证');
+set(gcf,'Position',[0,0,1200,600]);
+movegui(gca,"center");
 subplot(1,2,1);
 dBS21=-20*log10(abs(S21));
 dBS11=-20*log10(abs(S11));
@@ -32,7 +34,7 @@ set(gca,'FontSize',12);
 set(gca,'linewidth',1.2);
 xlabel('频率(MHz)');
 ylabel('抑制/回波损耗(dB)');
-ylim([-2, 50]);
+ylim([-2, max(dBS21)]);
 grid on;
 title('带通幅度响应','fontsize',14);
 subplot(1,2,2);

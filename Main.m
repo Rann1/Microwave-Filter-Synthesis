@@ -40,16 +40,16 @@ clear all;
 % Fstr=input('输入显示起始频率\nFstr=') %MHz
 % Fsto=input('输入显示截至频率\nFsto=') %MHz
 
-n=6;
-S=[-2j,2j];
+n=14;
+S=[-1.3487j,1.3487j,-1.1389j,1.1389j];
 nfz=length(S);
 RL=20;
-Start=3450;
-Stop=3550;
-Q=200;
+Start=3850;
+Stop=4150;
+Q=2000;
 
-Fstr=3000;
-Fsto=4000;
+Fstr=3600;
+Fsto=4400;
 
 BW=Stop-Start;
 CF=sqrt(Start*Stop);
@@ -107,12 +107,14 @@ E1=E.*1i.^[0:1:n];
 %E(s)/E(w)综合结束
 
 for k=1:1000
-    d(k)=-8+16/1000*k;
+    d(k)=-2+4/1000*k;
     r(k)=polyval(F,d(k))/polyval(E,d(k))/epr;
     t(k)=polyval(P,d(k))/polyval(E,d(k))/ep;
 end
 
 figure('name','无耗综合结果');
+set(gcf,'Position',[0,0,1800,1200]);
+movegui(gca,"center");
 subplot(2,3,1);
 I=-20*log10(abs(t));
 R=-20*log10(abs(r));
@@ -122,8 +124,8 @@ set(gca,'FontSize',12);
 set(gca,'linewidth',1.2);
 xlabel('归一化频率(rad/s)');
 ylabel('抑制/回波损耗(dB)');
-ylim([-2, 50]);
-xlim([-8, 8]);
+ylim([-2, max(I)]);
+xlim([-2, 2]);
 grid on;
 title('低通原型幅度响应','fontsize',14);
 
@@ -142,7 +144,7 @@ imagP=imag(P3);
 imagV=imag(V3);
 subplot(2,3,2);
 plot(realF,imagF,'o',realP,imagP,'^','LineWidth',1.5);
-axis([-2,2,-8,8]);
+axis([-2,2,-2,2]);
 xlabel('实部');
 ylabel('虚部');
 set(gca,'FontSize',12);
@@ -243,7 +245,7 @@ set(gca,'FontSize',12);
 set(gca,'linewidth',1.2);
 xlabel('频率(MHz)');
 ylabel('抑制/回波损耗(dB)');
-ylim([-2, 50]);
+ylim([-2, max(dBS21)]);
 grid on;
 title('带通幅度响应','fontsize',14);
 subplot(2,3,5);
@@ -259,13 +261,13 @@ ylabel('相位(°)');
 title('带通相位响应','fontsize',14);
 
 %滤波器群时延
-tao21=-1*diff(PS21)/((Fstr-Fsto)/k);%%%%%%
+tao21=-1*diff(PS21)/((Fsto-Fstr)/k);%%%%%%
 tao21=[tao21,0];
 subplot(2,3,6);
 plot(Bd,tao21,'.b','LineWidth',1.5);
 set(gca,'FontSize',12);
 set(gca,'linewidth',1.2);
-ylim([-0.5,12]);
+ylim([-0.5,40]);
 grid on;
 xlabel('频率(MHz)');
 ylabel('群时延(ns)');
@@ -275,6 +277,8 @@ set(cursorMode,'enable','on');
 
 %包含损耗的计算
 figure('name','低损耗综合结果');
+set(gcf,'Position',[0,0,1800,600]);
+movegui(gca,"center");
 subplot(1,3,1);
 for k=1:1000
     wpp(k)=((Fstr+(Fsto-Fstr)*k/1000)/CF-CF/(Fstr+(Fsto-Fstr)*k/1000))/FBW-1i*1/Q/FBW;
@@ -292,9 +296,9 @@ set(gca,'FontSize',12);
 set(gca,'linewidth',1.2);
 xlabel('频率(MHz)');
 ylabel('抑制/回波损耗(dB)');
-ylim([-2, 50]);
+ylim([-2, max(dBS21p)]);
 grid on;
-title('带损耗带通幅度响应','fontsize',14);
+title('有损耗带通幅度响应','fontsize',14);
 subplot(1,3,2);
 plot(Bd,dBS21,'b',Bd,dBS21p,'r','LineWidth',1.5);
 set(gca,'YDir','reverse');
@@ -313,7 +317,7 @@ set(gca,'FontSize',12);
 set(gca,'linewidth',1.2);
 xlabel('频率(MHz)');
 ylabel('抑制/回波损耗(dB)');
-axis([3000,4000,-2,50]);
+axis([Fstr,(Fstr+Fsto)/2,-2,max(dBS21p)]);
 grid on;
 title('有/无损耗带通幅度响应对比(宽带)','fontsize',14);
 cursorMode=datacursormode(gcf);
@@ -331,16 +335,16 @@ display(real(wheelCM));
 
 %-----------------------CT coupling matrix
 [CTCM,flag]=to_CTCM(n,S,wheelCM);
-disp('三元组（CT）拓扑：');
+disp('CT拓扑：');
 display(real(CTCM));
 
 %-----------------------CQ coupling matrix
 CQCM=to_CQCM(flag,n,CTCM,nfz);
-disp('四元组（CQ）拓扑：');
+disp('CQ拓扑：');
 display(real(CQCM));
 
 %-----------------------draw CM
-analyseCM(n,Fstr,Fsto,CQCM,CF,FBW);
+analyseCM(n,Fstr,Fsto,M,CF,FBW);
 
 %-----------------------反归一化耦合矩阵（输出耦合带宽以及谐振频率）
 unnormalizedCM=un_normalizeCM(CQCM,CF,FBW);
